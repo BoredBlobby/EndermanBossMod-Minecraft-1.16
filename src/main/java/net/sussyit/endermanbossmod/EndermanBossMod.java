@@ -1,5 +1,8 @@
 package net.sussyit.endermanbossmod;
 
+import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.sussyit.endermanbossmod.entity.ModEntities;
+import net.sussyit.endermanbossmod.entity.client.EndermanBossRenderer;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -35,6 +38,8 @@ public class EndermanBossMod {
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
+        ModEntities.register(modEventBus);
+
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
@@ -62,7 +67,7 @@ public class EndermanBossMod {
     static class ClientModEvents {
         @SubscribeEvent
         static void onClientSetup(FMLClientSetupEvent event) {
-
+            EntityRenderers.register(ModEntities.ENDERMANBOSS.get(), EndermanBossRenderer::new);
         }
     }
 }
