@@ -36,6 +36,9 @@ public class EndermanBossModel<T extends EndermanBossEntity> extends Hierarchica
     @Override
     public void setupAnim(EndermanBossEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
+
+        this.animate(entity.chargeAttackAnimationState, EndermanBossAnimations.ATTACK_CHARGE_RADIAL, ageInTicks, 1f);
+        this.animate(entity.summonAttackAnimationState, EndermanBossAnimations.ATTACK_SUMMON, ageInTicks, 1f);
     }
 
 
