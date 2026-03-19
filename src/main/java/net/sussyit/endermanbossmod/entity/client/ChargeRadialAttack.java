@@ -1,7 +1,11 @@
 package net.sussyit.endermanbossmod.entity.client;
 
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.Level;
+import net.sussyit.endermanbossmod.entity.ModEntities;
 import net.sussyit.endermanbossmod.entity.custom.EndermanBossEntity;
+import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
 
 import java.util.List;
 
@@ -25,10 +29,17 @@ public class ChargeRadialAttack implements IBossAttack{
         timer++;
 
         if (timer < WARNING_DURATION) {
+            if(timer == 1) {
+                EndermanEyeEntity endermanEye = new EndermanEyeEntity(ModEntities.ENDERMANEYE.get(), boss.level());
+                endermanEye.setOwner(boss);
+                endermanEye.setPos(boss.getX(), boss.getY()+3, boss.getZ());
+
+                boss.level().addFreshEntity(endermanEye);
+            }
             //spawn enderman eye entity and also warning circle
         }
 
-        if (timer >= WARNING_DURATION && timer <= (WARNING_DURATION + ATTACK_DURATION)) {
+        if (timer >= WARNING_DURATION && timer <= (WARNING_DURATION + ATTACK_DURATION) && boss.getAttack() == EndermanBossEntity.CHARGE_RADIAL_ATTACK) {
             this.detonateCircle(boss);
         }
     }
@@ -36,6 +47,7 @@ public class ChargeRadialAttack implements IBossAttack{
     @Override
     public void stop(EndermanBossEntity boss) {
         boss.chargeAttackAnimationState.stop();
+
     }
 
     @Override
@@ -57,7 +69,7 @@ public class ChargeRadialAttack implements IBossAttack{
         List<LivingEntity> targets = boss.level().getEntitiesOfClass(LivingEntity.class, boss.getBoundingBox().inflate(RADIUS), e -> e != boss);
         for(LivingEntity target : targets) {
             if (boss.distanceTo(target) <= RADIUS) {
-                target.hurt(boss.damageSources().mobAttack(boss), 15.0f);
+                target.hurt(boss.damageSources().mobAttack(boss), 3.0f);
 
                 double dx = target.getX() - boss.getX();
                 double dz = target.getZ() - boss.getZ();

@@ -1,4 +1,6 @@
 {
   "entity.mccourse.endermanboss": "Enderman Boss",
-  "entity.endermanbossmod.endermanboss": "Bobby"
+  "entity.endermanbossmod.endermanboss": "Bobby",
+  "entity.mccourse.endermaneye": "Enderman eye effect",
+  "entity.endermanbossmod.endermaneye": "Enderman Eye"
 }

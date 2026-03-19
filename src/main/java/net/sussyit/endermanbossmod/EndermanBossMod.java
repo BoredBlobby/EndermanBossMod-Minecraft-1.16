@@ -3,6 +3,8 @@ package net.sussyit.endermanbossmod;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.sussyit.endermanbossmod.entity.ModEntities;
 import net.sussyit.endermanbossmod.entity.client.EndermanBossRenderer;
+import net.sussyit.endermanbossmod.entity.client.EndermanEyeRenderer;
+import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -68,6 +70,7 @@ public class EndermanBossMod {
         @SubscribeEvent
         static void onClientSetup(FMLClientSetupEvent event) {
             EntityRenderers.register(ModEntities.ENDERMANBOSS.get(), EndermanBossRenderer::new);
+            EntityRenderers.register(ModEntities.ENDERMANEYE.get(), EndermanEyeRenderer::new);
         }
     }
 }

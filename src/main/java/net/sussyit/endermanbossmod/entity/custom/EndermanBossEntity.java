@@ -6,26 +6,36 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.sussyit.endermanbossmod.entity.client.ChargeRadialAttack;
 import net.sussyit.endermanbossmod.entity.client.IBossAttack;
+import net.sussyit.endermanbossmod.entity.client.SummonAttack;
+import net.sussyit.endermanbossmod.event.ModClientEvents;
+
+import java.util.List;
 
 public class EndermanBossEntity extends Monster {
     public final AnimationState chargeAttackAnimationState = new AnimationState();
     public final AnimationState summonAttackAnimationState = new AnimationState();
+    public final AnimationState dashAttackAnimationState = new AnimationState();
+    public final AnimationState eyeOfEndAttackAnimationState = new AnimationState();
 
     private static final EntityDataAccessor<Integer> BOSS_PHASE =
             SynchedEntityData.defineId(EndermanBossEntity.class, EntityDataSerializers.INT);
@@ -53,7 +63,9 @@ public class EndermanBossEntity extends Monster {
             .add(Attributes.MAX_HEALTH, 200.0)
             .add(Attributes.ATTACK_DAMAGE, 15.0)
             .add(Attributes.MOVEMENT_SPEED, 0.25)
+            .add(Attributes.KNOCKBACK_RESISTANCE, 6.0)
             .add(Attributes.FOLLOW_RANGE, 32.0);
+
     }
 
     public EndermanBossEntity(EntityType<? extends Monster> entityType, Level level) {
@@ -107,9 +119,6 @@ public class EndermanBossEntity extends Monster {
         if(!this.level().isClientSide()) {
             Player nearestPlayer = this.level().getNearestPlayer(this, 7.0D);
 
-            if(nearestPlayer != null) {
-                this.teleportRandom();
-            }
 
             if(this.activeAttack != null) {
                 this.activeAttack.tick(this);
@@ -121,6 +130,10 @@ public class EndermanBossEntity extends Monster {
                     attackCooldown = 60;
                 }
                 return;
+            } else {
+                if(nearestPlayer != null) {
+                    this.teleportRandom();
+                }
             }
 
             if(this.attackCooldown > 0) {
@@ -129,21 +142,44 @@ public class EndermanBossEntity extends Monster {
                 //System.out.println("Attack is being attempted(cooldown is 0)");
                 startNewAttack();
             }
+
+            // discards all summon enderman //
+            List<Player> players = this.level().getEntitiesOfClass(
+                    Player.class,
+                    this.getBoundingBox().inflate(64),
+                    p -> p.isAlive()
+            );
+
+            boolean noPlayersNearby = players.isEmpty();
+
+            if (noPlayersNearby || this.isDeadOrDying()) {
+                cleanupMinions();
+            }
+
+            // ----------------------------- //
         }
     }
 
+    private int flexibleTriggerTimer = 0;
     @Override
     public void tick() { //Client(animations)
         super.tick();
 
         if(this.getBossPhase() == PHASE_1) {
             if(this.getAttack() == CHARGE_RADIAL_ATTACK) {
+                flexibleTriggerTimer++;
                 this.chargeAttackAnimationState.startIfStopped(this.tickCount);
+                if(flexibleTriggerTimer == 100) {
+                    ModClientEvents.triggerFlash();
+                }
+            } else if (this.getAttack() == SUMMON_ATTACK) {
+                this.summonAttackAnimationState.startIfStopped(this.tickCount);
             }
         }
-
         if(this.getAttack() == ATTACK_NONE) {
             this.chargeAttackAnimationState.stop();
+            this.summonAttackAnimationState.stop();
+            flexibleTriggerTimer = 0;
         }
     }
 
@@ -211,11 +247,14 @@ public class EndermanBossEntity extends Monster {
         System.out.println("Phase" + phase);
         if(phase == PHASE_1) {
             if(nearestPlayer != null) {
-                int randomPick = this.random.nextInt(2);
+                int randomPick = this.random.nextInt(3);
                 System.out.println("Random number: " + randomPick);
                 if(randomPick == 1) {
                     System.out.println("Charge Attack is being chosen");
                     this.activeAttack = new ChargeRadialAttack();
+                } else if (randomPick == 2) {
+                    System.out.println("Summon Attack is being chose");
+                    this.activeAttack = new SummonAttack();
                 }
             }
         }
@@ -232,6 +271,18 @@ public class EndermanBossEntity extends Monster {
         return this.entityData.get(BOSS_ATTACKS);
     }
 
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if(!this.level().isClientSide() && this.isAlive()) {
+            if(this.getAttack() == CHARGE_RADIAL_ATTACK) {
+                this.setAttack(ATTACK_NONE);
+                this.teleportRandom();
+                this.chargeAttackAnimationState.stop();
+            }
+        }
+        return super.hurt(source, amount);
+    }
+
     /* -------PHASES------- */
 
     public final void setBossPhase(int currBossPhase) {
@@ -240,5 +291,29 @@ public class EndermanBossEntity extends Monster {
 
     public final int getBossPhase() {
         return this.entityData.get(BOSS_PHASE);
+    }
+
+    /* --------CLEANUP/SAFETY MEASUREMENTS-------- */
+    public void cleanupMinions() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        List<EnderMan> minions = serverLevel.getEntitiesOfClass(
+                EnderMan.class,
+                this.getBoundingBox().inflate(64), // radius
+                e -> e.getTags().contains("boss_minion")
+        );
+
+        for (EnderMan enderman : minions) {
+            enderman.discard();
+        }
+    }
+
+    @Override
+    public void die(DamageSource source) {
+        super.die(source);
+
+        if(!this.level().isClientSide) {
+            cleanupMinions();
+        }
     }
 }
