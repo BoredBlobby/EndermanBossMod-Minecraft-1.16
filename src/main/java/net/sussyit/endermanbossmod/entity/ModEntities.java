@@ -8,6 +8,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.sussyit.endermanbossmod.EndermanBossMod;
 import net.sussyit.endermanbossmod.entity.custom.EndermanBossEntity;
 import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
+import net.sussyit.endermanbossmod.entity.custom.EyeOfEndEntity;
 
 import java.util.function.Supplier;
 
@@ -21,6 +22,8 @@ public class ModEntities {
         public static final Supplier<EntityType<EndermanEyeEntity>> ENDERMANEYE =
                 ENTITY_TYPES.register("endermaneye", () -> EntityType.Builder.of(EndermanEyeEntity::new, MobCategory.MISC)
                         .sized(0.5f, 0.5f).build("endermaneye"));
-
+        public static final Supplier<EntityType<EyeOfEndEntity>> EYEOFEND =
+                ENTITY_TYPES.register("eyeofend", () -> EntityType.Builder.of(EyeOfEndEntity::new, MobCategory.MISC)
+                        .sized(7.0f, 5.0f).build("eyeofend"));
         public static void register(IEventBus eventBus) { ENTITY_TYPES.register(eventBus); }
 }

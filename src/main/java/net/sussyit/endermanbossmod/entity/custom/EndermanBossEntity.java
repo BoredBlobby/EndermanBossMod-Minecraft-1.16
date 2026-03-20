@@ -19,14 +19,11 @@ import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
-import net.sussyit.endermanbossmod.entity.client.ChargeRadialAttack;
-import net.sussyit.endermanbossmod.entity.client.IBossAttack;
-import net.sussyit.endermanbossmod.entity.client.SummonAttack;
+import net.sussyit.endermanbossmod.entity.client.*;
 import net.sussyit.endermanbossmod.event.ModClientEvents;
 
 import java.util.List;
@@ -51,7 +48,8 @@ public class EndermanBossEntity extends Monster {
     public final static int SUMMON_ATTACK = 2;
     public final static int DASH_ATTACK = 3;
     public final static int EYES_OF_END = 4;
-    public final static int LIGHTING_STRIKE = 5;
+    public final static int KNOCKBACK_ATTACK = 5;
+
 
     private IBossAttack activeAttack = null;
     private int attackCooldown = 0;
@@ -69,7 +67,10 @@ public class EndermanBossEntity extends Monster {
     }
 
     public EndermanBossEntity(EntityType<? extends Monster> entityType, Level level) {
+
         super(entityType, level);
+        this.setNoGravity(true);
+
     }
 
     @Override
@@ -84,6 +85,7 @@ public class EndermanBossEntity extends Monster {
         super.defineSynchedData(builder);
         builder.define(BOSS_PHASE, PHASE_1);
         builder.define(BOSS_ATTACKS, ATTACK_NONE);
+        builder.define(TIMER_STAGE_EYE_OF_END_ATTACK, CLOSED);
     }
 
     @Override
@@ -100,6 +102,7 @@ public class EndermanBossEntity extends Monster {
         super.addAdditionalSaveData(compound);
         compound.putInt("Phase", this.getBossPhase());
         compound.putInt("Attack", this.getAttack());
+        compound.putInt("EyeOfEndAttack", this.getTimerStageEyeOfEndAttack());
     }
 
     @Override
@@ -109,6 +112,7 @@ public class EndermanBossEntity extends Monster {
             this.setBossPhase(compound.getInt("Phase"));
         }
         this.setAttack(compound.getInt("Attack"));
+        this.setTimerStageEyeOfEndAttack(compound.getInt("EyeOfEndAttack"));
     }
 
     /* --------Boss actions and animations----------- */
@@ -118,29 +122,31 @@ public class EndermanBossEntity extends Monster {
         super.aiStep();
         if(!this.level().isClientSide()) {
             Player nearestPlayer = this.level().getNearestPlayer(this, 7.0D);
+            Player range = this.level().getNearestPlayer(this, 40.0D);
 
+            if(range != null) {
+                if (this.activeAttack != null) {
+                    this.activeAttack.tick(this);
 
-            if(this.activeAttack != null) {
-                this.activeAttack.tick(this);
-
-                if(this.activeAttack.isFinished()) {
-                    this.activeAttack.stop(this);
-                    this.activeAttack = null;
-                    this.setAttack(ATTACK_NONE);
-                    attackCooldown = 60;
+                    if (this.activeAttack.isFinished()) {
+                        this.activeAttack.stop(this);
+                        this.activeAttack = null;
+                        this.setAttack(ATTACK_NONE);
+                        attackCooldown = 60;
+                    }
+                    return;
+                } else {
+                    if (nearestPlayer != null) {
+                        this.teleportRandom();
+                    }
                 }
-                return;
-            } else {
-                if(nearestPlayer != null) {
-                    this.teleportRandom();
-                }
-            }
 
-            if(this.attackCooldown > 0) {
-                this.attackCooldown--;
-            } else {
-                //System.out.println("Attack is being attempted(cooldown is 0)");
-                startNewAttack();
+                if (this.attackCooldown > 0) {
+                    this.attackCooldown--;
+                } else {
+                    //System.out.println("Attack is being attempted(cooldown is 0)");
+                    startNewAttack();
+                }
             }
 
             // discards all summon enderman //
@@ -193,12 +199,8 @@ public class EndermanBossEntity extends Monster {
                 double d1 = this.getY() + (double) (this.random.nextInt(64) - 32); // down and up
                 double d2 = this.getZ() + (this.random.nextDouble() - 0.5) * 11.0;
 
-                BlockPos targetPos = new BlockPos((int)d0, (int)d1, (int)d2);
-
-                if (!this.level().getBlockState(targetPos).blocksMotion() && d1 + d2 > 7) {
-                    if (this.teleport(d0, d1, d2)) {
-                        return true;
-                    }
+                if (this.teleport(d0, d1, d2)) {
+                    return true;
                 }
             }
         }
@@ -224,8 +226,10 @@ public class EndermanBossEntity extends Monster {
 
             Vec3 oldPos = this.position();
 
+
+
             // Use randomTeleport with the specific coordinates from the event
-            boolean success = this.randomTeleport(event.getTargetX(), event.getTargetY(), event.getTargetZ(), true);
+            boolean success = this.randomTeleport(event.getTargetX(), event.getTargetY()+2, event.getTargetZ(), true);
 
             if (success) {
                 // Sound at the old position
@@ -243,11 +247,9 @@ public class EndermanBossEntity extends Monster {
     private void startNewAttack() {
         System.out.println("Attack is being chosem");
         int phase = this.getBossPhase();
-        Player nearestPlayer = this.level().getNearestPlayer(this, 15.0D);
         System.out.println("Phase" + phase);
         if(phase == PHASE_1) {
-            if(nearestPlayer != null) {
-                int randomPick = this.random.nextInt(3);
+                int randomPick = this.random.nextInt(1,4);
                 System.out.println("Random number: " + randomPick);
                 if(randomPick == 1) {
                     System.out.println("Charge Attack is being chosen");
@@ -255,8 +257,10 @@ public class EndermanBossEntity extends Monster {
                 } else if (randomPick == 2) {
                     System.out.println("Summon Attack is being chose");
                     this.activeAttack = new SummonAttack();
+                } else if (randomPick == 3) {
+                    System.out.println("Eye Of End Attack is being chosen");
+                    this.activeAttack = new EyeOfEndAttack();
                 }
-            }
         }
         if(this.activeAttack != null) {
             this.activeAttack.start(this);
@@ -276,9 +280,9 @@ public class EndermanBossEntity extends Monster {
         if(!this.level().isClientSide() && this.isAlive()) {
             if(this.getAttack() == CHARGE_RADIAL_ATTACK) {
                 this.setAttack(ATTACK_NONE);
-                this.teleportRandom();
                 this.chargeAttackAnimationState.stop();
             }
+            this.teleportRandom();
         }
         return super.hurt(source, amount);
     }
@@ -291,6 +295,24 @@ public class EndermanBossEntity extends Monster {
 
     public final int getBossPhase() {
         return this.entityData.get(BOSS_PHASE);
+    }
+
+    /* -----EYE OF END ATTACK SYSTEM DATA------ */
+
+    private static final EntityDataAccessor<Integer> TIMER_STAGE_EYE_OF_END_ATTACK =
+            SynchedEntityData.defineId(EndermanBossEntity.class, EntityDataSerializers.INT);
+    public final static int CLOSED = 1;
+    public final static int WARNING = 2;
+    public final static int OPEN = 3;
+    public final static int HIDDEN = 0;
+
+    public final void setTimerStageEyeOfEndAttack(int timerStage) {
+        this.entityData.set(TIMER_STAGE_EYE_OF_END_ATTACK, timerStage);
+
+    }
+
+    public final int getTimerStageEyeOfEndAttack() {
+        return this.entityData.get(TIMER_STAGE_EYE_OF_END_ATTACK);
     }
 
     /* --------CLEANUP/SAFETY MEASUREMENTS-------- */

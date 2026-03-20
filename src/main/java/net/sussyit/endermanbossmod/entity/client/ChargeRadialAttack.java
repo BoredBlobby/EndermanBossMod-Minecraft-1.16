@@ -15,7 +15,7 @@ public class ChargeRadialAttack implements IBossAttack{
 
     private final int WARNING_DURATION = 100;
     private final int ATTACK_DURATION = 20;
-    private final double RADIUS = 14.0;
+    private final double RADIUS = 20.0;
 
     @Override
     public void start(EndermanBossEntity boss) {
@@ -69,7 +69,7 @@ public class ChargeRadialAttack implements IBossAttack{
         List<LivingEntity> targets = boss.level().getEntitiesOfClass(LivingEntity.class, boss.getBoundingBox().inflate(RADIUS), e -> e != boss);
         for(LivingEntity target : targets) {
             if (boss.distanceTo(target) <= RADIUS) {
-                target.hurt(boss.damageSources().mobAttack(boss), 3.0f);
+                target.hurt(boss.damageSources().mobAttack(boss), 20.0f);
 
                 double dx = target.getX() - boss.getX();
                 double dz = target.getZ() - boss.getZ();

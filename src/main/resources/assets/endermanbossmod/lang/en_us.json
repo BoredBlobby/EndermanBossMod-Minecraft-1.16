@@ -2,5 +2,7 @@
   "entity.mccourse.endermanboss": "Enderman Boss",
   "entity.endermanbossmod.endermanboss": "Bobby",
   "entity.mccourse.endermaneye": "Enderman eye effect",
-  "entity.endermanbossmod.endermaneye": "Enderman Eye"
+  "entity.endermanbossmod.endermaneye": "Enderman Eye",
+  "entity.mccourse.eyeofend": "Eye of End effect",
+  "entity.endermanbossmod.eyeofend": "Eye of End"
 }
