@@ -15,7 +15,7 @@ public class ChargeRadialAttack implements IBossAttack{
 
     private final int WARNING_DURATION = 100;
     private final int ATTACK_DURATION = 20;
-    private final double RADIUS = 20.0;
+    private final double RADIUS = 30.0;
 
     @Override
     public void start(EndermanBossEntity boss) {

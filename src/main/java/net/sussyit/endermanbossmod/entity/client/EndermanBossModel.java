@@ -41,6 +41,7 @@ public class EndermanBossModel<T extends EndermanBossEntity> extends Hierarchica
         this.animate(entity.summonAttackAnimationState, EndermanBossAnimations.ATTACK_SUMMON, ageInTicks, 1f);
         this.animate(entity.dashAttackAnimationState, EndermanBossAnimations.ATTACK_DASH, ageInTicks, 1f);
         this.animate(entity.eyeOfEndAttackAnimationState, EndermanBossAnimations.ATTACK_EYE_OF_END, ageInTicks, 1f);
+        this.animate(entity.knockBackAnimationState, EndermanBossAnimations.ATTACK_KNOCKBACK, ageInTicks, 1f);
     }
 
 

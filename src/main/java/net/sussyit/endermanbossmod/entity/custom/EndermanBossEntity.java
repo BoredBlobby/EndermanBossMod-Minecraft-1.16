@@ -3,12 +3,16 @@ package net.sussyit.endermanbossmod.entity.custom;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
@@ -33,6 +37,7 @@ public class EndermanBossEntity extends Monster {
     public final AnimationState summonAttackAnimationState = new AnimationState();
     public final AnimationState dashAttackAnimationState = new AnimationState();
     public final AnimationState eyeOfEndAttackAnimationState = new AnimationState();
+    public final AnimationState knockBackAnimationState = new AnimationState();
 
     private static final EntityDataAccessor<Integer> BOSS_PHASE =
             SynchedEntityData.defineId(EndermanBossEntity.class, EntityDataSerializers.INT);
@@ -49,10 +54,14 @@ public class EndermanBossEntity extends Monster {
     public final static int DASH_ATTACK = 3;
     public final static int EYES_OF_END = 4;
     public final static int KNOCKBACK_ATTACK = 5;
+    public final static int LASER_ATTACK = 6;
 
 
     private IBossAttack activeAttack = null;
     private int attackCooldown = 0;
+
+    private final ServerBossEvent bossEvent= new ServerBossEvent(Component.literal("Enderman Mage"),
+            BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.NOTCHED_20);
 
     /* --------Boss stats--------- */
 
@@ -115,15 +124,30 @@ public class EndermanBossEntity extends Monster {
         this.setTimerStageEyeOfEndAttack(compound.getInt("EyeOfEndAttack"));
     }
 
+    @Override
+    public void startSeenByPlayer(ServerPlayer pServerLevel) {
+        super.startSeenByPlayer(pServerLevel);
+        this.bossEvent.addPlayer(pServerLevel);
+    }
+
+    @Override
+    public void stopSeenByPlayer(ServerPlayer pServerLevel) {
+        super.stopSeenByPlayer(pServerLevel);
+        this.bossEvent.removePlayer(pServerLevel);
+    }
+
+
+
     /* --------Boss actions and animations----------- */
 
     @Override
     public void aiStep() { //Server
         super.aiStep();
+        this.bossEvent.setProgress(this.getHealth()/this.getMaxHealth());
         if(!this.level().isClientSide()) {
             Player nearestPlayer = this.level().getNearestPlayer(this, 7.0D);
-            Player range = this.level().getNearestPlayer(this, 40.0D);
-
+            Player range = this.level().getNearestPlayer(this, 50.0D);
+            Player far = this.level().getNearestPlayer(this, 30.0D);
             if(range != null) {
                 if (this.activeAttack != null) {
                     this.activeAttack.tick(this);
@@ -132,22 +156,26 @@ public class EndermanBossEntity extends Monster {
                         this.activeAttack.stop(this);
                         this.activeAttack = null;
                         this.setAttack(ATTACK_NONE);
-                        attackCooldown = 60;
+                        attackCooldown = 50;
                     }
                     return;
                 } else {
                     if (nearestPlayer != null) {
                         this.teleportRandom();
                     }
+                    if (far == null) {
+                        this.teleportNearPlayer(range);
+                    }
                 }
 
                 if (this.attackCooldown > 0) {
                     this.attackCooldown--;
                 } else {
-                    //System.out.println("Attack is being attempted(cooldown is 0)");
                     startNewAttack();
                 }
             }
+
+
 
             // discards all summon enderman //
             List<Player> players = this.level().getEntitiesOfClass(
@@ -207,6 +235,24 @@ public class EndermanBossEntity extends Monster {
         return false;
     }
 
+    protected boolean teleportNearPlayer(Player player) {
+        if(!this.level().isClientSide() && this.isAlive()) {
+            //Try multiple times(16 times total)
+            for(int i = 0; i < 16; ++i) {
+                if(player != null) {
+                    double d0 = player.getX() + (this.random.nextDouble() - 0.5) * 15.0;
+                    double d1 = player.getY() + (double) (this.random.nextInt(64) - 32); // down and up
+                    double d2 = player.getZ() + (this.random.nextDouble() - 0.5) * 15.0;
+
+                    if (this.teleport(d0, d1, d2)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private boolean teleport(double x, double y, double z) {
         BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos(x, y, z);
 
@@ -245,13 +291,15 @@ public class EndermanBossEntity extends Monster {
     /* ----------ATTACKS--------- */
 
     private void startNewAttack() {
+        Player close = this.level().getNearestPlayer(this, 9.0D);
         System.out.println("Attack is being chosem");
         int phase = this.getBossPhase();
         System.out.println("Phase" + phase);
         if(phase == PHASE_1) {
-                int randomPick = this.random.nextInt(1,4);
+            if(close == null) {
+                int randomPick = this.random.nextInt(1, 4);
                 System.out.println("Random number: " + randomPick);
-                if(randomPick == 1) {
+                if (randomPick == 1) {
                     System.out.println("Charge Attack is being chosen");
                     this.activeAttack = new ChargeRadialAttack();
                 } else if (randomPick == 2) {
@@ -261,6 +309,9 @@ public class EndermanBossEntity extends Monster {
                     System.out.println("Eye Of End Attack is being chosen");
                     this.activeAttack = new EyeOfEndAttack();
                 }
+            } else {
+                this.activeAttack = new KnockbackAttack();
+            }
         }
         if(this.activeAttack != null) {
             this.activeAttack.start(this);

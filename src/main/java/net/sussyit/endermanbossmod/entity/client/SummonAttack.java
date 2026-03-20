@@ -15,6 +15,7 @@ public class SummonAttack implements IBossAttack{
     public void start(EndermanBossEntity boss) {
         boss.summonAttackAnimationState.startIfStopped(boss.tickCount);
         boss.setAttack(EndermanBossEntity.SUMMON_ATTACK);
+        timer = 0;
     }
 
     @Override
