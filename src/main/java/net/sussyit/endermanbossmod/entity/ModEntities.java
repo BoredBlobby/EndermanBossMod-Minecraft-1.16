@@ -9,6 +9,7 @@ import net.sussyit.endermanbossmod.EndermanBossMod;
 import net.sussyit.endermanbossmod.entity.custom.EndermanBossEntity;
 import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
 import net.sussyit.endermanbossmod.entity.custom.EyeOfEndEntity;
+import net.sussyit.endermanbossmod.entity.custom.SpikeEntity;
 
 import java.util.function.Supplier;
 
@@ -25,5 +26,8 @@ public class ModEntities {
         public static final Supplier<EntityType<EyeOfEndEntity>> EYEOFEND =
                 ENTITY_TYPES.register("eyeofend", () -> EntityType.Builder.of(EyeOfEndEntity::new, MobCategory.MISC)
                         .sized(7.0f, 5.0f).build("eyeofend"));
+        public static final Supplier<EntityType<SpikeEntity>> SPIKE =
+                ENTITY_TYPES.register("spike", () -> EntityType.Builder.of(SpikeEntity::new, MobCategory.MISC)
+                        .sized(1.0f, 3.0f).build("spike"));
         public static void register(IEventBus eventBus) { ENTITY_TYPES.register(eventBus); }
 }

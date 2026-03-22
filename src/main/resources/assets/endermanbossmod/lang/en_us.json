@@ -4,5 +4,7 @@
   "entity.mccourse.endermaneye": "Enderman eye effect",
   "entity.endermanbossmod.endermaneye": "Enderman Eye",
   "entity.mccourse.eyeofend": "Eye of End effect",
-  "entity.endermanbossmod.eyeofend": "Eye of End"
+  "entity.endermanbossmod.eyeofend": "Eye of End",
+  "entity.mccourse.spike": "Spike effect",
+  "entity.endermanbossmod.spike": "Spike"
 }

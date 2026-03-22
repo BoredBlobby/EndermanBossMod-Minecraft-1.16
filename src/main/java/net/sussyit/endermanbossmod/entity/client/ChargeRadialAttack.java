@@ -6,6 +6,7 @@ import net.minecraft.world.level.Level;
 import net.sussyit.endermanbossmod.entity.ModEntities;
 import net.sussyit.endermanbossmod.entity.custom.EndermanBossEntity;
 import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
+import net.sussyit.endermanbossmod.util.CameraShakeUtils;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public class ChargeRadialAttack implements IBossAttack{
 
     private final int WARNING_DURATION = 100;
     private final int ATTACK_DURATION = 20;
-    private final double RADIUS = 30.0;
+    private final double RADIUS = 50.0;
 
     @Override
     public void start(EndermanBossEntity boss) {
@@ -36,11 +37,16 @@ public class ChargeRadialAttack implements IBossAttack{
 
                 boss.level().addFreshEntity(endermanEye);
             }
+            if(timer % 20 == 0) {
+                CameraShakeUtils.shake(1, 0.5f, false, 0.25f);
+
+            }
             //spawn enderman eye entity and also warning circle
         }
 
         if (timer >= WARNING_DURATION && timer <= (WARNING_DURATION + ATTACK_DURATION) && boss.getAttack() == EndermanBossEntity.CHARGE_RADIAL_ATTACK) {
             this.detonateCircle(boss);
+            CameraShakeUtils.shake(ATTACK_DURATION, 1f, false, 1.00f);
         }
     }
 

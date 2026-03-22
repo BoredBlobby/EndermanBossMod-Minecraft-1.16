@@ -54,7 +54,7 @@ public class EndermanBossEntity extends Monster {
     public final static int DASH_ATTACK = 3;
     public final static int EYES_OF_END = 4;
     public final static int KNOCKBACK_ATTACK = 5;
-    public final static int LASER_ATTACK = 6;
+    public final static int SPIKE_ATTACK = 6;
 
 
     private IBossAttack activeAttack = null;
@@ -146,8 +146,8 @@ public class EndermanBossEntity extends Monster {
         this.bossEvent.setProgress(this.getHealth()/this.getMaxHealth());
         if(!this.level().isClientSide()) {
             Player nearestPlayer = this.level().getNearestPlayer(this, 7.0D);
-            Player range = this.level().getNearestPlayer(this, 50.0D);
-            Player far = this.level().getNearestPlayer(this, 30.0D);
+            Player range = this.level().getNearestPlayer(this, 60.0D);
+            Player far = this.level().getNearestPlayer(this, 50.0D);
             if(range != null) {
                 if (this.activeAttack != null) {
                     this.activeAttack.tick(this);
@@ -156,7 +156,7 @@ public class EndermanBossEntity extends Monster {
                         this.activeAttack.stop(this);
                         this.activeAttack = null;
                         this.setAttack(ATTACK_NONE);
-                        attackCooldown = 50;
+                        attackCooldown = 10;
                     }
                     return;
                 } else {
@@ -228,7 +228,19 @@ public class EndermanBossEntity extends Monster {
                 double d2 = this.getZ() + (this.random.nextDouble() - 0.5) * 11.0;
 
                 if (this.teleport(d0, d1, d2)) {
-                    return true;
+                    Player player = this.level().getNearestPlayer(this, 50); // range tweakable
+
+                    if(player != null) {
+                        double dx = player.getX() - this.getX();
+                        double dz = player.getZ() - this.getZ();
+
+                        float yaw = (float) (Math.atan2(dz, dx) * (180F / Math.PI)) - 90F;
+
+                        this.setYRot(yaw);
+                        this.setYHeadRot(yaw);
+                        this.setYBodyRot(yaw);
+                        return true;
+                    }
                 }
             }
         }
@@ -245,6 +257,18 @@ public class EndermanBossEntity extends Monster {
                     double d2 = player.getZ() + (this.random.nextDouble() - 0.5) * 15.0;
 
                     if (this.teleport(d0, d1, d2)) {
+                        // Direction to player
+                        double dx = player.getX() - this.getX();
+                        double dz = player.getZ() - this.getZ();
+
+                        // Convert to yaw
+                        float yaw = (float)(Math.atan2(dz, dx) * (180F / Math.PI)) - 90F;
+
+                        // Apply rotation
+                        this.setYRot(yaw);
+                        this.setYHeadRot(yaw);
+                        this.setYBodyRot(yaw);
+
                         return true;
                     }
                 }
@@ -297,7 +321,7 @@ public class EndermanBossEntity extends Monster {
         System.out.println("Phase" + phase);
         if(phase == PHASE_1) {
             if(close == null) {
-                int randomPick = this.random.nextInt(1, 4);
+                int randomPick = this.random.nextInt(1, 5);
                 System.out.println("Random number: " + randomPick);
                 if (randomPick == 1) {
                     System.out.println("Charge Attack is being chosen");
@@ -308,6 +332,8 @@ public class EndermanBossEntity extends Monster {
                 } else if (randomPick == 3) {
                     System.out.println("Eye Of End Attack is being chosen");
                     this.activeAttack = new EyeOfEndAttack();
+                } else if (randomPick == 4) {
+                    this.activeAttack = new SpikeAttack();
                 }
             } else {
                 this.activeAttack = new KnockbackAttack();

@@ -2,10 +2,7 @@ package net.sussyit.endermanbossmod;
 
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.sussyit.endermanbossmod.entity.ModEntities;
-import net.sussyit.endermanbossmod.entity.client.EndermanBossRenderer;
-import net.sussyit.endermanbossmod.entity.client.EndermanEyeRenderer;
-import net.sussyit.endermanbossmod.entity.client.EyeOfEndModel;
-import net.sussyit.endermanbossmod.entity.client.EyeOfEndRenderer;
+import net.sussyit.endermanbossmod.entity.client.*;
 import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
 import org.slf4j.Logger;
 
@@ -74,6 +71,7 @@ public class EndermanBossMod {
             EntityRenderers.register(ModEntities.ENDERMANBOSS.get(), EndermanBossRenderer::new);
             EntityRenderers.register(ModEntities.ENDERMANEYE.get(), EndermanEyeRenderer::new);
             EntityRenderers.register(ModEntities.EYEOFEND.get(), EyeOfEndRenderer::new);
+            EntityRenderers.register(ModEntities.SPIKE.get(), SpikeRenderer::new);
         }
     }
 }
