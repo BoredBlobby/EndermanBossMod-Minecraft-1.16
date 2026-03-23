@@ -11,7 +11,7 @@ public class KnockbackAttack implements IBossAttack{
     private final int WARNING_DURATION = 10;
     private final int ATTACK_DURATION = 10;
 
-    private final double RADIUS = 4;
+    private final double RADIUS = 8;
 
     @Override
     public void start(EndermanBossEntity boss) {

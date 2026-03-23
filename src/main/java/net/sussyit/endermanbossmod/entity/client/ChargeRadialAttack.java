@@ -1,11 +1,13 @@
 package net.sussyit.endermanbossmod.entity.client;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.sussyit.endermanbossmod.entity.ModEntities;
 import net.sussyit.endermanbossmod.entity.custom.EndermanBossEntity;
 import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
+import net.sussyit.endermanbossmod.sounds.ModSounds;
 import net.sussyit.endermanbossmod.util.CameraShakeUtils;
 
 import java.util.List;
@@ -34,7 +36,7 @@ public class ChargeRadialAttack implements IBossAttack{
                 EndermanEyeEntity endermanEye = new EndermanEyeEntity(ModEntities.ENDERMANEYE.get(), boss.level());
                 endermanEye.setOwner(boss);
                 endermanEye.setPos(boss.getX(), boss.getY()+3, boss.getZ());
-
+                Minecraft.getInstance().getSoundManager().play(new ChargeRadialSound(boss));
                 boss.level().addFreshEntity(endermanEye);
             }
             if(timer % 20 == 0) {

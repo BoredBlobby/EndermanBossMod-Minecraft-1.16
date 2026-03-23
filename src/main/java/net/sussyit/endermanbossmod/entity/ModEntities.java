@@ -19,7 +19,7 @@ public class ModEntities {
 
         public static final Supplier<EntityType<EndermanBossEntity>> ENDERMANBOSS =
                 ENTITY_TYPES.register("endermanboss", () -> EntityType.Builder.of(EndermanBossEntity::new, MobCategory.MONSTER)
-                        .sized(2f, 1.5f).build("endermanboss"));
+                        .sized(1.0f, 3.0f).build("endermanboss"));
         public static final Supplier<EntityType<EndermanEyeEntity>> ENDERMANEYE =
                 ENTITY_TYPES.register("endermaneye", () -> EntityType.Builder.of(EndermanEyeEntity::new, MobCategory.MISC)
                         .sized(0.5f, 0.5f).build("endermaneye"));

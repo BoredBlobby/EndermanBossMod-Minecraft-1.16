@@ -35,9 +35,20 @@ import java.util.List;
 public class EndermanBossEntity extends Monster {
     public final AnimationState chargeAttackAnimationState = new AnimationState();
     public final AnimationState summonAttackAnimationState = new AnimationState();
-    public final AnimationState dashAttackAnimationState = new AnimationState();
     public final AnimationState eyeOfEndAttackAnimationState = new AnimationState();
     public final AnimationState knockBackAnimationState = new AnimationState();
+    public final AnimationState teleportOneAnimationState = new AnimationState();
+    public final AnimationState teleportTwoAnimationState = new AnimationState();
+    public final AnimationState teleportThreeAnimationState = new AnimationState();
+    public final AnimationState teleportFourAnimationState = new AnimationState();
+    public final AnimationState spikeAnimationState = new AnimationState();
+
+    private int chosenTeleportAnim = -1;
+    private int lastAttackAnim = -1;
+    private boolean justTeleported = false;
+
+    private static final EntityDataAccessor<Boolean> JUST_TELEPORTED =
+            SynchedEntityData.defineId(EndermanBossEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<Integer> BOSS_PHASE =
             SynchedEntityData.defineId(EndermanBossEntity.class, EntityDataSerializers.INT);
@@ -95,6 +106,7 @@ public class EndermanBossEntity extends Monster {
         builder.define(BOSS_PHASE, PHASE_1);
         builder.define(BOSS_ATTACKS, ATTACK_NONE);
         builder.define(TIMER_STAGE_EYE_OF_END_ATTACK, CLOSED);
+        builder.define(JUST_TELEPORTED, false);
     }
 
     @Override
@@ -156,7 +168,8 @@ public class EndermanBossEntity extends Monster {
                         this.activeAttack.stop(this);
                         this.activeAttack = null;
                         this.setAttack(ATTACK_NONE);
-                        attackCooldown = 10;
+                        teleportRandom();
+                        attackCooldown = 30;
                     }
                     return;
                 } else {
@@ -166,6 +179,10 @@ public class EndermanBossEntity extends Monster {
                     if (far == null) {
                         this.teleportNearPlayer(range);
                     }
+                }
+
+                if (this.entityData.get(JUST_TELEPORTED)) {
+                    this.entityData.set(JUST_TELEPORTED, false);
                 }
 
                 if (this.attackCooldown > 0) {
@@ -198,22 +215,60 @@ public class EndermanBossEntity extends Monster {
     @Override
     public void tick() { //Client(animations)
         super.tick();
+        this.setDeltaMovement(this.getDeltaMovement().x, 0, this.getDeltaMovement().z);
+        System.out.println(this.getAttack());
 
-        if(this.getBossPhase() == PHASE_1) {
-            if(this.getAttack() == CHARGE_RADIAL_ATTACK) {
-                flexibleTriggerTimer++;
-                this.chargeAttackAnimationState.startIfStopped(this.tickCount);
-                if(flexibleTriggerTimer == 100) {
-                    ModClientEvents.triggerFlash();
-                }
-            } else if (this.getAttack() == SUMMON_ATTACK) {
-                this.summonAttackAnimationState.startIfStopped(this.tickCount);
-            }
-        }
-        if(this.getAttack() == ATTACK_NONE) {
+        if (this.getAttack() != lastAttackAnim) {
+
+            // Stop ALL animations once
             this.chargeAttackAnimationState.stop();
             this.summonAttackAnimationState.stop();
-            flexibleTriggerTimer = 0;
+            this.knockBackAnimationState.stop();
+            this.eyeOfEndAttackAnimationState.stop();
+            this.teleportOneAnimationState.stop();
+            this.teleportTwoAnimationState.stop();
+            this.teleportThreeAnimationState.stop();
+            this.teleportFourAnimationState.stop();
+            this.spikeAnimationState.stop();
+
+            lastAttackAnim = this.getAttack();
+        }
+
+        if(this.getBossPhase() == PHASE_1) {
+            if(this.getAttack() != ATTACK_NONE) {
+                if (this.getAttack() == CHARGE_RADIAL_ATTACK) {
+                    flexibleTriggerTimer++;
+                    this.chargeAttackAnimationState.startIfStopped(this.tickCount);
+                    if (flexibleTriggerTimer == 100) {
+                        ModClientEvents.triggerFlash();
+                    }
+                } else if (this.getAttack() == SUMMON_ATTACK) {
+                    this.summonAttackAnimationState.startIfStopped(this.tickCount);
+                } else if (this.getAttack() == EYES_OF_END) {
+                    this.eyeOfEndAttackAnimationState.startIfStopped(this.tickCount);
+                } else if (this.getAttack() == KNOCKBACK_ATTACK) {
+                    this.knockBackAnimationState.startIfStopped(this.tickCount);
+                } else if (this.getAttack() == SPIKE_ATTACK) {
+                    this.spikeAnimationState.startIfStopped(this.tickCount);
+                }
+            } else {
+                flexibleTriggerTimer = 0;
+                if(this.entityData.get(JUST_TELEPORTED)) {
+                    this.teleportOneAnimationState.stop();
+                    this.teleportTwoAnimationState.stop();
+                    this.teleportThreeAnimationState.stop();
+                    this.teleportFourAnimationState.stop();
+
+                    chosenTeleportAnim = this.random.nextInt(4);
+
+                    switch (chosenTeleportAnim) {
+                        case 0 -> this.teleportOneAnimationState.startIfStopped(this.tickCount);
+                        case 1 -> this.teleportTwoAnimationState.startIfStopped(this.tickCount);
+                        case 2 -> this.teleportThreeAnimationState.startIfStopped(this.tickCount);
+                        case 3 -> this.teleportFourAnimationState.startIfStopped(this.tickCount);
+                    }
+                }
+            }
         }
     }
 
@@ -299,13 +354,15 @@ public class EndermanBossEntity extends Monster {
 
 
             // Use randomTeleport with the specific coordinates from the event
-            boolean success = this.randomTeleport(event.getTargetX(), event.getTargetY()+2, event.getTargetZ(), true);
+            boolean success = this.randomTeleport(event.getTargetX(), event.getTargetY()+4, event.getTargetZ(), true);
 
             if (success) {
                 // Sound at the old position
                 this.level().playSound(null, oldPos.x, oldPos.y, oldPos.z, SoundEvents.ENDERMAN_TELEPORT, this.getSoundSource(), 1.0F, 1.0F);
                 // Sound at the new position
                 this.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
+                this.justTeleported = true;
+                this.entityData.set(JUST_TELEPORTED, true);
                 return true;
             }
         }
@@ -316,21 +373,22 @@ public class EndermanBossEntity extends Monster {
 
     private void startNewAttack() {
         Player close = this.level().getNearestPlayer(this, 9.0D);
-        System.out.println("Attack is being chosem");
+        //System.out.println("Attack is being chosem");
         int phase = this.getBossPhase();
-        System.out.println("Phase" + phase);
+        //System.out.println("Phase" + phase);
         if(phase == PHASE_1) {
             if(close == null) {
                 int randomPick = this.random.nextInt(1, 5);
-                System.out.println("Random number: " + randomPick);
+                //System.out.println("Random number: " + randomPick);
+                this.teleportRandom();
                 if (randomPick == 1) {
-                    System.out.println("Charge Attack is being chosen");
+                    //System.out.println("Charge Attack is being chosen");
                     this.activeAttack = new ChargeRadialAttack();
                 } else if (randomPick == 2) {
-                    System.out.println("Summon Attack is being chose");
+                    //System.out.println("Summon Attack is being chose");
                     this.activeAttack = new SummonAttack();
                 } else if (randomPick == 3) {
-                    System.out.println("Eye Of End Attack is being chosen");
+                    //System.out.println("Eye Of End Attack is being chosen");
                     this.activeAttack = new EyeOfEndAttack();
                 } else if (randomPick == 4) {
                     this.activeAttack = new SpikeAttack();

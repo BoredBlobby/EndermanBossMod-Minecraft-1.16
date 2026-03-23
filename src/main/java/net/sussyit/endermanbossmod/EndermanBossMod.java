@@ -4,6 +4,7 @@ import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.sussyit.endermanbossmod.entity.ModEntities;
 import net.sussyit.endermanbossmod.entity.client.*;
 import net.sussyit.endermanbossmod.entity.custom.EndermanEyeEntity;
+import net.sussyit.endermanbossmod.sounds.ModSounds;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -40,6 +41,9 @@ public class EndermanBossMod {
         NeoForge.EVENT_BUS.register(this);
 
         ModEntities.register(modEventBus);
+        ModSounds.register(modEventBus);
+
+
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
