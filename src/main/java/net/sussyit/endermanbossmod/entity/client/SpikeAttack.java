@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3;
 import net.sussyit.endermanbossmod.entity.ModEntities;
 import net.sussyit.endermanbossmod.entity.custom.EndermanBossEntity;
 import net.sussyit.endermanbossmod.entity.custom.SpikeEntity;
+import net.sussyit.endermanbossmod.sounds.ModSounds;
 
 public class SpikeAttack implements IBossAttack{
     private int attackStep = 0;
@@ -35,6 +36,10 @@ public class SpikeAttack implements IBossAttack{
     public void tick(EndermanBossEntity boss) {
         if(!boss.level().isClientSide()) {
             if (nearestPlayer != null && nearestPlayer.isAlive()) {
+                if(attackStep == 1) {
+                    boss.level().playSound(null, boss.getX(), boss.getY(), boss.getZ(),
+                            ModSounds.SPIKE.get(), boss.getSoundSource(), 1.0F, 1.0F);
+                }
                 if (attackCooldown > 0) {
                     attackCooldown--;
                     return;

@@ -14,7 +14,7 @@ public class ModSounds {
             DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, EndermanBossMod.MOD_ID);
 
     public static final Supplier<SoundEvent> CHARGE_RADIAL = registerSoundEvent("chargeradial");
-
+    public static final Supplier<SoundEvent> SPIKE = registerSoundEvent("spike");
 
     private static Supplier<SoundEvent> registerSoundEvent(String name) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(EndermanBossMod.MOD_ID, name);

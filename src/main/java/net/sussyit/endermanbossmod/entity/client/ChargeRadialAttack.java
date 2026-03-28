@@ -1,6 +1,7 @@
 package net.sussyit.endermanbossmod.entity.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
@@ -22,7 +23,7 @@ public class ChargeRadialAttack implements IBossAttack{
 
     @Override
     public void start(EndermanBossEntity boss) {
-        boss.chargeAttackAnimationState.start(boss.tickCount);
+        //boss.chargeAttackAnimationState.start(boss.tickCount);
         boss.setAttack(EndermanBossEntity.CHARGE_RADIAL_ATTACK);
         timer = 0;
     }
@@ -47,6 +48,9 @@ public class ChargeRadialAttack implements IBossAttack{
         }
 
         if (timer >= WARNING_DURATION && timer <= (WARNING_DURATION + ATTACK_DURATION) && boss.getAttack() == EndermanBossEntity.CHARGE_RADIAL_ATTACK) {
+            if(timer == WARNING_DURATION) {
+                boss.playSound(SoundEvents.MACE_SMASH_AIR, 1.0F, 1.0F);
+            }
             this.detonateCircle(boss);
             CameraShakeUtils.shake(ATTACK_DURATION, 1f, false, 1.00f);
         }
@@ -54,7 +58,7 @@ public class ChargeRadialAttack implements IBossAttack{
 
     @Override
     public void stop(EndermanBossEntity boss) {
-        boss.chargeAttackAnimationState.stop();
+        //boss.chargeAttackAnimationState.stop();
 
     }
 

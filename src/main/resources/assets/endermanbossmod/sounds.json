@@ -4,5 +4,11 @@
     "sounds": [
       "endermanbossmod:chargeradial"
     ]
+  },
+  "spike": {
+    "subtitle": "sounds.endermanbossmod.spike",
+    "sounds": [
+      "endermanbossmod:spike"
+    ]
   }
 }

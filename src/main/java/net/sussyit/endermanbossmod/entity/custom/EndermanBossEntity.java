@@ -216,7 +216,7 @@ public class EndermanBossEntity extends Monster {
     public void tick() { //Client(animations)
         super.tick();
         this.setDeltaMovement(this.getDeltaMovement().x, 0, this.getDeltaMovement().z);
-        System.out.println(this.getAttack());
+        //System.out.println(this.getAttack());
 
         if (this.getAttack() != lastAttackAnim) {
 
@@ -252,8 +252,11 @@ public class EndermanBossEntity extends Monster {
                     this.spikeAnimationState.startIfStopped(this.tickCount);
                 }
             } else {
+                System.out.println("Attack none is being chosen");
                 flexibleTriggerTimer = 0;
                 if(this.entityData.get(JUST_TELEPORTED)) {
+
+
                     this.teleportOneAnimationState.stop();
                     this.teleportTwoAnimationState.stop();
                     this.teleportThreeAnimationState.stop();
@@ -382,19 +385,21 @@ public class EndermanBossEntity extends Monster {
                 //System.out.println("Random number: " + randomPick);
                 this.teleportRandom();
                 if (randomPick == 1) {
-                    //System.out.println("Charge Attack is being chosen");
+                    System.out.println("Charge Attack is being chosen");
                     this.activeAttack = new ChargeRadialAttack();
                 } else if (randomPick == 2) {
-                    //System.out.println("Summon Attack is being chose");
+                    System.out.println("Summon Attack is being chose");
                     this.activeAttack = new SummonAttack();
                 } else if (randomPick == 3) {
-                    //System.out.println("Eye Of End Attack is being chosen");
+                    System.out.println("Eye Of End Attack is being chosen");
                     this.activeAttack = new EyeOfEndAttack();
                 } else if (randomPick == 4) {
                     this.activeAttack = new SpikeAttack();
+                    System.out.println("Spike Attack is being chosen");
                 }
             } else {
                 this.activeAttack = new KnockbackAttack();
+                System.out.println("Knockback attack is being chosen");
             }
         }
         if(this.activeAttack != null) {
@@ -415,7 +420,7 @@ public class EndermanBossEntity extends Monster {
         if(!this.level().isClientSide() && this.isAlive()) {
             if(this.getAttack() == CHARGE_RADIAL_ATTACK) {
                 this.setAttack(ATTACK_NONE);
-                this.chargeAttackAnimationState.stop();
+                this.flexibleTriggerTimer = 0; // IMPORTANT
             }
             this.teleportRandom();
         }

@@ -1,5 +1,6 @@
 package net.sussyit.endermanbossmod.entity.client;
 
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.EnderMan;
@@ -22,9 +23,14 @@ public class SummonAttack implements IBossAttack{
     public void tick(EndermanBossEntity boss) {
         timer++;
 
+        if(timer == 1){
+            boss.playSound(SoundEvents.ENDERMAN_AMBIENT, 1.0F, 1.0F);
+        }
+
         if (timer > WARNING_DURATION && timer <= (WARNING_DURATION + ATTACK_DURATION)) {
             if (timer % 20 == 0) {
                 EnderMan enderman = EntityType.ENDERMAN.create(boss.level());
+                boss.playSound(SoundEvents.BLAZE_SHOOT, 1.0F, 1.0F);
 
                 if (enderman != null) {
                     Player targetPlayer = boss.level().getNearestPlayer(boss, 20.0D);

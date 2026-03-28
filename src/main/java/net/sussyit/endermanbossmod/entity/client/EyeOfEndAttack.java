@@ -1,11 +1,15 @@
 package net.sussyit.endermanbossmod.entity.client;
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.sussyit.endermanbossmod.entity.ModEntities;
 import net.sussyit.endermanbossmod.entity.custom.EndermanBossEntity;
 import net.sussyit.endermanbossmod.entity.custom.EyeOfEndEntity;
+import net.sussyit.endermanbossmod.sounds.ModSounds;
 import net.sussyit.endermanbossmod.util.CameraShakeUtils;
 
 public class EyeOfEndAttack implements IBossAttack{
@@ -32,6 +36,7 @@ public class EyeOfEndAttack implements IBossAttack{
 
         if(boss.getAttack() == EndermanBossEntity.EYES_OF_END) {
             if(timer == 1) {
+                boss.playSound(SoundEvents.ENDERMAN_STARE, 1.0F, 1.0F);
                 Player target = boss.level().getNearestPlayer(boss, 15.0D);
                 if (target != null && target.isAlive()) {
                     EyeOfEndEntity eyeOfEnd = new EyeOfEndEntity(ModEntities.EYEOFEND.get(), boss.level());
@@ -82,6 +87,7 @@ public class EyeOfEndAttack implements IBossAttack{
                         boss.cleanupMinions();
                     }
                     CameraShakeUtils.shake(ATTACK_DURATION, 1f, true, 0.25f);
+                    boss.playSound(SoundEvents.ENDERMAN_SCREAM, 1.0F, 1.0F);
                 }
                 boss.setTimerStageEyeOfEndAttack(EndermanBossEntity.OPEN);
             }
