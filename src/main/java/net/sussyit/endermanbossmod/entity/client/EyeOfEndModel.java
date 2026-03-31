@@ -44,7 +44,7 @@ public class EyeOfEndModel<T extends EyeOfEndEntity> extends HierarchicalModel<T
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
-        poseStack.scale(8.0f, 8.0f, 8.0f);
+        poseStack.scale(11.0f, 11.0f, 11.0f);
         root.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
 
