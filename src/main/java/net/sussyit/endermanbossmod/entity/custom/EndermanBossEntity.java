@@ -2,6 +2,7 @@ package net.sussyit.endermanbossmod.entity.custom;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -161,24 +162,24 @@ public class EndermanBossEntity extends Monster {
             Player range = this.level().getNearestPlayer(this, 60.0D);
             Player far = this.level().getNearestPlayer(this, 50.0D);
             if(range != null) {
-                if (this.getAttack() != ATTACK_NONE) {
-                    this.activeAttack.tick(this);
+                    if (this.getAttack() != ATTACK_NONE && this.activeAttack != null) {
+                        this.activeAttack.tick(this);
 
-                    if (this.activeAttack.isFinished()) {
-                        this.activeAttack.stop(this);
-                        this.setAttack(ATTACK_NONE);
-                        teleportRandom();
-                        attackCooldown = 30;
+                        if (this.activeAttack.isFinished()) {
+                            this.activeAttack.stop(this);
+                            this.setAttack(ATTACK_NONE);
+                            teleportRandom();
+                            attackCooldown = 30;
+                        }
+                        return;
+                    } else {
+                        if (nearestPlayer != null) {
+                            this.teleportRandom();
+                        }
+                        if (far == null) {
+                            this.teleportNearPlayer(range);
+                        }
                     }
-                    return;
-                } else {
-                    if (nearestPlayer != null) {
-                        this.teleportRandom();
-                    }
-                    if (far == null) {
-                        this.teleportNearPlayer(range);
-                    }
-                }
 
                 if (this.entityData.get(JUST_TELEPORTED)) {
                     this.entityData.set(JUST_TELEPORTED, false);
@@ -216,6 +217,12 @@ public class EndermanBossEntity extends Monster {
         super.tick();
         this.setDeltaMovement(this.getDeltaMovement().x, 0, this.getDeltaMovement().z);
         //System.out.println(this.getAttack());
+
+        if (this.level().isClientSide) {
+            for(int i = 0; i < 2; ++i) {
+                this.level().addParticle(ParticleTypes.PORTAL, this.getRandomX(0.5), this.getRandomY() - 0.25, this.getRandomZ(0.5), (this.random.nextDouble() - 0.5) * 2.0, -this.random.nextDouble(), (this.random.nextDouble() - 0.5) * 2.0);
+            }
+        }
 
         if (this.getAttack() != lastAttackAnim) {
 
