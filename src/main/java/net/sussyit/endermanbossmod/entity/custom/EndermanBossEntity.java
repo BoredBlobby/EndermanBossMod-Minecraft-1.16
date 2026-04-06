@@ -161,12 +161,11 @@ public class EndermanBossEntity extends Monster {
             Player range = this.level().getNearestPlayer(this, 60.0D);
             Player far = this.level().getNearestPlayer(this, 50.0D);
             if(range != null) {
-                if (this.activeAttack != null) {
+                if (this.getAttack() != ATTACK_NONE) {
                     this.activeAttack.tick(this);
 
                     if (this.activeAttack.isFinished()) {
                         this.activeAttack.stop(this);
-                        this.activeAttack = null;
                         this.setAttack(ATTACK_NONE);
                         teleportRandom();
                         attackCooldown = 30;

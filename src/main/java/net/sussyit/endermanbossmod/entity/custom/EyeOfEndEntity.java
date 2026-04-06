@@ -117,7 +117,7 @@ public class EyeOfEndEntity extends Mob {
                     double dot = playerLook.dot(toEntity);
 
                     // threshold: closer to 1 = more precise
-                    if (dot > 0.4) { // 🔥 tweak this
+                    if (dot > 0.4) {
                         targetPlayer.hurt(targetPlayer.damageSources().magic(), 15.0f);
                     }
                 }
