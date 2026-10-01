@@ -1,25 +1,9 @@
 
-Installation information
+Minecraft Enderman Boss Mod
 =======
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+This Minecraft Mod adds in a new baby enderman boss into the game. Since This mod was a one week project,
+I didn't have enough time to add natural generation or a structure. It is spawnable through commands or an egg.
+Note that in order to download this mod, you must be on Minecraft 1.16 and Neoforge 21.1.169.
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
-
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
-
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
-
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+[![Watch the video]([https://img.youtube.com/vi/YOUR_YOUTUBE_VIDEO_ID](https://www.youtube.com/watch?v=573x5EBP1ts)/0.jpg)](https://www.youtube.com/watch?v=573x5EBP1ts)
